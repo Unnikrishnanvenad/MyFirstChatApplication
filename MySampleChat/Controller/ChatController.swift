@@ -5,11 +5,12 @@
 //  Created by IRISMAC on 29/01/19.
 //  Copyright © 2019 IRIS Medical Solutions. All rights reserved.
 //
-
+//
 import UIKit
 import Firebase
 import FirebaseAuth
 import FirebaseDatabase
+import SDWebImage
 
 class ChatController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout {
    
@@ -87,12 +88,14 @@ class ChatController: UIViewController,UICollectionViewDelegate,UICollectionView
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return messages.count
     }
-    
+    let DEFAULT_USER_IMAGE  =  UIImage(named:"user")!
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionview.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! FreelancerCell
         let data = messages[indexPath.row]
      
-        cell.profileImageview.loadImageUsingURLString(urlString: (users?.profileURL)!)
+         cell.profileImageview.sd_setShowActivityIndicatorView(true)
+         cell.profileImageview.sd_setIndicatorStyle(.whiteLarge)
+        cell.profileImageview.sd_setImage(with: URL(fileURLWithPath: (users?.profileURL)!), placeholderImage: DEFAULT_USER_IMAGE)
         if data.fromId ==  Auth.auth().currentUser?.uid{
               cell.textView.backgroundColor = .blue
             cell.profileImageview.isHidden = true

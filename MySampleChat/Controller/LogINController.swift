@@ -43,7 +43,8 @@ class LogINController: UIViewController {
                 print("Sign Up Successfully. \(user)")
             }
             if ((Auth.auth().currentUser?.uid) != nil){
-                let storageRef = Storage.storage().reference().child("myImage.png")
+                let imageName = NSUUID().uuidString
+                let storageRef = Storage.storage().reference().child("\(imageName).png")
                 if let img = self.imageView.image{
                     if let data:Data = img.jpeg(.lowest)  {
                         storageRef.putData(data, metadata: nil, completion: { (metaData, error) in
