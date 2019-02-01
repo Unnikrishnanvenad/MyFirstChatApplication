@@ -92,10 +92,11 @@ class ChatController: UIViewController,UICollectionViewDelegate,UICollectionView
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionview.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! FreelancerCell
         let data = messages[indexPath.row]
-     
+        let urlImage  = URL(string: (users?.profileURL)!)
          cell.profileImageview.sd_setShowActivityIndicatorView(true)
          cell.profileImageview.sd_setIndicatorStyle(.whiteLarge)
-        cell.profileImageview.sd_setImage(with: URL(fileURLWithPath: (users?.profileURL)!), placeholderImage: DEFAULT_USER_IMAGE)
+        
+        cell.profileImageview.sd_setImage(with: urlImage , placeholderImage: DEFAULT_USER_IMAGE)
         if data.fromId ==  Auth.auth().currentUser?.uid{
               cell.textView.backgroundColor = .blue
             cell.profileImageview.isHidden = true
