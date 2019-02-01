@@ -12,7 +12,7 @@ import FirebaseAuth
 import FirebaseDatabase
 import SDWebImage
 
-class ChatController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout {
+class ChatController: UICollectionViewController {
    
     @IBOutlet var collectionview: UICollectionView!
     var user = [User]()
@@ -25,11 +25,32 @@ class ChatController: UIViewController,UICollectionViewDelegate,UICollectionView
         super.viewDidLoad()
         navigationItem.title = users?.name
   navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Log out", style: .plain, target: self, action: #selector(handleLogout))
+        setupInputComponent()
      observeMessages()
-        collectionview.register(FreelancerCell.self, forCellWithReuseIdentifier: "Cell")
-        collectionview.showsVerticalScrollIndicator = false
+//        collectionview.register(FreelancerCell.self, forCellWithReuseIdentifier: "Cell")
+//        collectionview.showsVerticalScrollIndicator = false
         
     }
+    func setupInputComponent(){
+        let containerView = UIView()
+        containerView.backgroundColor = .red
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+         view.addSubview(containerView)
+        
+        
+        containerView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        containerView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        containerView.heightAnchor.constraint(equalToConstant: 50).isActive = true
+       
+    }
+    
+    
+    
+    
+    
+    
+    
       @objc func handleLogout(){
         self.dismiss(animated: true, completion: nil)
     }
@@ -37,7 +58,7 @@ class ChatController: UIViewController,UICollectionViewDelegate,UICollectionView
         messages.removeAll()
         messageDict.removeAll()
                if ((Auth.auth().currentUser?.uid) != nil){
-        let msgRef = Database.database().reference().child("user-messages").child((Auth.auth().currentUser?.uid)!)
+                let msgRef = Database.database().reference().child("user-messages").child((Auth.auth().currentUser?.uid)!).child((users?.id)!)
         msgRef.observe(.childAdded, with: { (snapshot) in
             let key = snapshot.key
             let  ref =  Database.database().reference().child("messages").child(key)
@@ -54,7 +75,7 @@ class ChatController: UIViewController,UICollectionViewDelegate,UICollectionView
                     if dataMessge.chatPartnerID()  == self.users?.id{
                          self.messages.append(dataMessge)
                         DispatchQueue.main.async {
-                            self.collectionview.reloadData()
+//                            self.collectionview.reloadData()
                         }
                     }
                     
@@ -76,20 +97,20 @@ class ChatController: UIViewController,UICollectionViewDelegate,UICollectionView
       self.txtMessage.text = nil
         guard let messageId = childRef.key else { return }
         
-        let userMessagesRef = Database.database().reference().child("user-messages").child(fromID!).child(messageId)
+        let userMessagesRef = Database.database().reference().child("user-messages").child(fromID!).child(toID!).child(messageId)
         userMessagesRef.setValue(1)
         
-        let recipientUserMessagesRef = Database.database().reference().child("user-messages").child(toID!).child(messageId)
+        let recipientUserMessagesRef = Database.database().reference().child("user-messages").child(toID!).child(fromID!).child(messageId)
         recipientUserMessagesRef.setValue(1)
         
         
     }
     
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return messages.count
     }
     let DEFAULT_USER_IMAGE  =  UIImage(named:"user")!
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionview.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! FreelancerCell
         let data = messages[indexPath.row]
         let urlImage  = URL(string: (users?.profileURL)!)

@@ -159,7 +159,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dWv-iV-PGR">
+                            <view alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dWv-iV-PGR">
                                 <rect key="frame" x="0.0" y="617" width="375" height="50"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N4s-dh-4X8">
@@ -191,7 +191,7 @@
                                     <constraint firstItem="B4s-2q-pp3" firstAttribute="leading" secondItem="dWv-iV-PGR" secondAttribute="leading" id="vlD-8N-loH"/>
                                 </constraints>
                             </view>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="nOy-X0-AJI">
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" alpha="0.0" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="nOy-X0-AJI">
                                 <rect key="frame" x="8" y="28" width="359" height="581"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="fIN-7Y-02b">
@@ -201,10 +201,6 @@
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
                                 <cells/>
-                                <connections>
-                                    <outlet property="dataSource" destination="ZQY-fg-axH" id="nVD-ta-Vmb"/>
-                                    <outlet property="delegate" destination="ZQY-fg-axH" id="NDT-Tm-JGL"/>
-                                </connections>
                             </collectionView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -220,7 +216,6 @@
                         <viewLayoutGuide key="safeArea" id="tn8-KY-MBx"/>
                     </view>
                     <connections>
-                        <outlet property="collectionview" destination="nOy-X0-AJI" id="fa5-07-ado"/>
                         <outlet property="txtMessage" destination="B4s-2q-pp3" id="tTu-B3-Biu"/>
                     </connections>
                 </viewController>

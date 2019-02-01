@@ -13,6 +13,7 @@ import FirebaseDatabase
 
 class ViewController: UITableViewController {
     var users = [User]()
+    var timer : Timer?
     var messages = [Message]()
       var messageDict = [String: Message]()
     override func viewDidLoad() {
@@ -28,33 +29,18 @@ class ViewController: UITableViewController {
             if ((Auth.auth().currentUser?.uid) != nil){
                 let msgRef = Database.database().reference().child("user-messages").child((Auth.auth().currentUser?.uid)!)
                 msgRef.observe(.childAdded, with: { (snapshot) in
-                    let key = snapshot.key
-                  let  ref =  Database.database().reference().child("messages").child(key)
-                    ref.observeSingleEvent(of: .value, with: { (snapshot) in
-                        print(snapshot)
-                        if let dict = snapshot.value as? [String:AnyObject]{
-                            print(dict)
-                            let fromId = dict["fromId"] as? String
-                            let toId = dict["toId"] as? String
-                            let text = dict["text"] as? String
-                            let timestamp = dict["timestamp"] as? NSNumber
-                            let dataMessge =   Message(fromId: fromId!, toId: toId!, text: text!, timestamp: timestamp!)
-                            if let chatpartnerID = dataMessge.chatPartnerID(){
-                                self.messageDict[chatpartnerID] = dataMessge
-                            self.messages = Array(self.messageDict.values)
-                            //                self.messages.sorted(by: { (lhs, rhs) -> Bool in
-                            //                    if let lhsTime = lhs.timestamp?.intValue, let rhsTime = rhs.timestamp?.intValue {
-                            //                        return lhs.timestamp < rhs.timestamp
-                            //                    }
-                            //                })
-                            self.messages = self.messages.sorted{(($0.timestamp?.intValue)! > ($1.timestamp?.intValue)!)}
-                            DispatchQueue.main.async {
-                                self.tableView.reloadData()
-                            }
-                            }
-                        }
-                    }, withCancel: nil)
-                    
+                    let userID = snapshot.key
+                    let msgRef2 = Database.database().reference().child("user-messages").child((Auth.auth().currentUser?.uid)!).child((userID))
+                        msgRef2.observe(.childAdded, with: { (snapshot) in
+                            let key = snapshot.key
+                            let  ref =  Database.database().reference().child("messages").child(key)
+                            ref.observeSingleEvent(of: .value, with: { (snapshot) in
+                                print(snapshot)
+                                   let userIDkey = snapshot.key
+                                self.FetchDataMessage(userID: userIDkey)
+                            }, withCancel: nil)
+                            
+                        }, withCancel: nil)
                 }, withCancel: nil)
                 
                 
@@ -62,6 +48,36 @@ class ViewController: UITableViewController {
                 
         }
         
+    }
+    func FetchDataMessage(userID :String){
+        let  ref =  Database.database().reference().child("messages").child(userID)
+        ref.observeSingleEvent(of: .value, with: { (snapshot) in
+            print(snapshot)
+            if let dict = snapshot.value as? [String:AnyObject]{
+                print(dict)
+                let fromId = dict["fromId"] as? String
+                let toId = dict["toId"] as? String
+                let text = dict["text"] as? String
+                let timestamp = dict["timestamp"] as? NSNumber
+                let dataMessge =   Message(fromId: fromId!, toId: toId!, text: text!, timestamp: timestamp!)
+                if let chatpartnerID = dataMessge.chatPartnerID(){
+                    self.messageDict[chatpartnerID] = dataMessge
+                    self.messages = Array(self.messageDict.values)
+                    self.reloadTableData()
+                }
+            }
+        }, withCancel: nil)
+    }
+    
+    func reloadTableData()  {
+        self.timer?.invalidate()
+        self.timer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(reloadAllData), userInfo: nil, repeats: false)
+    }
+    @objc func reloadAllData(){
+           self.messages = self.messages.sorted{(($0.timestamp?.intValue)! > ($1.timestamp?.intValue)!)}
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
     }
     func observeMessage(){
         messages.removeAll()
@@ -77,12 +93,7 @@ class ViewController: UITableViewController {
               let dataMessge =   Message(fromId: fromId!, toId: toId!, text: text!, timestamp: timestamp!)
                 self.messageDict[toId!] = dataMessge
                 self.messages = Array(self.messageDict.values)
-//                self.messages.sorted(by: { (lhs, rhs) -> Bool in
-//                    if let lhsTime = lhs.timestamp?.intValue, let rhsTime = rhs.timestamp?.intValue {
-//                        return lhs.timestamp < rhs.timestamp
-//                    }
-//                })
-               self.messages = self.messages.sorted{(($0.timestamp?.intValue)! > ($1.timestamp?.intValue)!)}
+                self.messages = self.messages.sorted{(($0.timestamp?.intValue)! > ($1.timestamp?.intValue)!)}
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
                 }
@@ -137,10 +148,13 @@ class ViewController: UITableViewController {
         
     }
     func ShowChat(user:User){
-        let secondVC = self.storyboard?.instantiateViewController(withIdentifier: "ChatController") as! ChatController
-        secondVC.users = user
-        let navigationVC = UINavigationController(rootViewController: secondVC)
-        self.present(navigationVC, animated: true, completion: nil)
+        let chatVC = ChatController(collectionViewLayout:UICollectionViewFlowLayout())
+          chatVC.users = user
+//        let secondVC = self.storyboard?.instantiateViewController(withIdentifier: "ChatController") as! ChatController
+//        secondVC.users = user
+//        let navigationVC = UINavigationController(rootViewController: secondVC)
+//        self.present(navigationVC, animated: true, completion: nil)
+        navigationController?.pushViewController(chatVC, animated: true)
         
     }
         @objc func NewMessage(){
