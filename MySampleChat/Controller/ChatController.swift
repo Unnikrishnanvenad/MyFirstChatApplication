@@ -12,47 +12,74 @@ import FirebaseAuth
 import FirebaseDatabase
 import SDWebImage
 
-class ChatController: UICollectionViewController {
+class ChatController: UICollectionViewController ,UITextFieldDelegate,UICollectionViewDelegateFlowLayout{
    
-    @IBOutlet var collectionview: UICollectionView!
+    var txtField  =  UITextField()
     var user = [User]()
     var messages = [Message]()
     var messageDict = [String: Message]()
     var users : User?
     
-    @IBOutlet var txtMessage: UITextField!
+ 
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = users?.name
   navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Log out", style: .plain, target: self, action: #selector(handleLogout))
         setupInputComponent()
      observeMessages()
-//        collectionview.register(FreelancerCell.self, forCellWithReuseIdentifier: "Cell")
-//        collectionview.showsVerticalScrollIndicator = false
-        
+        collectionView.register(FreelancerCell.self, forCellWithReuseIdentifier: "Cell")
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.contentInset = UIEdgeInsets(top: 8, left: 2, bottom: 58, right: 2)
+        collectionView.scrollIndicatorInsets = UIEdgeInsets(top: 00, left: 0, bottom: 58, right: 0)
+        collectionView.backgroundColor = .white
+    }
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        collectionView.collectionViewLayout.invalidateLayout()
     }
     func setupInputComponent(){
         let containerView = UIView()
-        containerView.backgroundColor = .red
+        containerView.backgroundColor = .clear
         containerView.translatesAutoresizingMaskIntoConstraints = false
          view.addSubview(containerView)
-        
+        collectionView?.backgroundColor = .white
         
         containerView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         containerView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         containerView.heightAnchor.constraint(equalToConstant: 50).isActive = true
-       
+        let sendBtn = UIButton()
+        sendBtn.setTitle("Send", for: .normal)
+        sendBtn.setTitleColor(.blue, for: .normal)
+        sendBtn.translatesAutoresizingMaskIntoConstraints = false
+        sendBtn.addTarget(self, action: #selector(BtnSend), for: .touchUpInside)
+        containerView.addSubview(sendBtn)
+        sendBtn.rightAnchor.constraint(equalTo: containerView.rightAnchor).isActive = true
+        sendBtn.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
+        sendBtn.heightAnchor.constraint(equalTo: containerView.heightAnchor).isActive = true
+        sendBtn.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        txtField.placeholder = "Enter text.."
+        txtField.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(txtField)
+        txtField.leftAnchor.constraint(equalTo: containerView.leftAnchor).isActive = true
+        txtField.centerYAnchor.constraint(equalTo: containerView.centerYAnchor).isActive = true
+        txtField.rightAnchor.constraint(equalTo: sendBtn.leftAnchor).isActive = true
+        txtField.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
+        txtField.heightAnchor.constraint(equalTo: containerView.heightAnchor).isActive = true
+        let seperatorView = UIView()
+        seperatorView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
+        seperatorView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(seperatorView)
+        seperatorView.leftAnchor.constraint(equalTo: containerView.leftAnchor).isActive = true
+        seperatorView.topAnchor.constraint(equalTo: containerView.topAnchor).isActive = true
+        seperatorView.widthAnchor.constraint(equalTo: containerView.widthAnchor).isActive = true
+        seperatorView.heightAnchor.constraint(equalToConstant: 1).isActive = true
     }
-    
-    
-    
-    
-    
-    
-    
-      @objc func handleLogout(){
-        self.dismiss(animated: true, completion: nil)
+    @objc func handleLogout(){
+        navigationController?.popViewController(animated: true)
+    }
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        BtnSend()
+        return true
     }
     func observeMessages(){
         messages.removeAll()
@@ -75,7 +102,7 @@ class ChatController: UICollectionViewController {
                     if dataMessge.chatPartnerID()  == self.users?.id{
                          self.messages.append(dataMessge)
                         DispatchQueue.main.async {
-//                            self.collectionview.reloadData()
+                            self.collectionView.reloadData()
                         }
                     }
                     
@@ -86,15 +113,15 @@ class ChatController: UICollectionViewController {
         }, withCancel: nil)
         }
     }
-    @IBAction func BtnSend(_ sender: Any) {
+    @objc func BtnSend() {
         let ref = Database.database().reference().child("messages")
         let childRef = ref.childByAutoId()
         let toID = users?.id
         let fromID =  Auth.auth().currentUser?.uid
          let timestamp: NSNumber = (Date().timeIntervalSince1970 as AnyObject as! NSNumber)
-        let values = ["text": txtMessage.text!,"toId":toID! as Any, "fromId": fromID!,"timestamp": timestamp] as [String : Any]
+        let values = ["text": txtField.text!,"toId":toID! as Any, "fromId": fromID!,"timestamp": timestamp] as [String : Any]
         childRef.updateChildValues(values)
-      self.txtMessage.text = nil
+      self.txtField.text = nil
         guard let messageId = childRef.key else { return }
         
         let userMessagesRef = Database.database().reference().child("user-messages").child(fromID!).child(toID!).child(messageId)
@@ -111,7 +138,7 @@ class ChatController: UICollectionViewController {
     }
     let DEFAULT_USER_IMAGE  =  UIImage(named:"user")!
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionview.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! FreelancerCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! FreelancerCell
         let data = messages[indexPath.row]
         let urlImage  = URL(string: (users?.profileURL)!)
          cell.profileImageview.sd_setShowActivityIndicatorView(true)
